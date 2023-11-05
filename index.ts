@@ -94,10 +94,16 @@ app.get('/pessoas', async (req, res) => {
   })
 })
 
-app.get("/contagem-pessoas", (req, res) => {
+app.get("/contagem-pessoas", async (req, res) => {
+  const { rows } = await client.query(`
+      SELECT count(*)
+      FROM person
+  `)
+
   return res.status(200).json({
     url: 'contagem-pessoas',
-    message: 'not implemented'
+    message: 'Ok',
+    payload: rows[0]
   })
 })
 
