@@ -70,7 +70,11 @@ app.get('/pessoas', async (req, res) => {
   const term = req.query.t
 
   const response = await client.query(`
-    SELECT * 
+    SELECT 
+      apelido,
+      nome,
+      nascimento,
+      stack
     FROM (
       SELECT *, unnest(stack) eachstack
       FROM person) x
@@ -80,10 +84,12 @@ app.get('/pessoas', async (req, res) => {
     LIMIT 50
   `)
 
+  // TODO index
+
   return res.status(200).json({
     url: 'pessoas',
     message: 'ok',
-    q: term,
+    query: term,
     payload: response.rows
   })
 })
