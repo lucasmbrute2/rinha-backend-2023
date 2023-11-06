@@ -3,14 +3,15 @@ import pg from 'pg'
 import { randomUUID } from "node:crypto"
 
 const client = new pg.Client({
-  host: 'localhost',
   port: 5432,
-  database: 'postgres',
-  user: 'test',
-  password: 'test',
+  user: 'user',
+  password: 'senha',
+  host: 'db',
+  database: 'postgres'
 })
 
 const app = express()
+
 
 app.use(express.json())
 
@@ -44,7 +45,6 @@ app.post("/pessoas", async (req, res) => {
     return res.status(200).json({
       statusCode: 200,
       insertion: { id, ...b },
-
     })
   } catch (error) {
     return res.status(500).json({
@@ -108,11 +108,10 @@ app.get("/contagem-pessoas", async (req, res) => {
 })
 
 try {
-  app.listen(3333, async () => {
+  app.listen(8080, async () => {
     await client.connect()
     console.log("server running")
   })
-
 } catch (error) {
   console.error(error)
 }
