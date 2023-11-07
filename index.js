@@ -12,6 +12,16 @@ const client = new pg.Client({
 
 const app = express()
 
+async function connect() {
+  try {
+    await client.connect()
+  } catch (error) {
+    setTimeout(() => {
+      connect()
+      console.info("database error: trying to connect again, err", error)
+    }, 3000);
+  }
+}
 
 app.use(express.json())
 
@@ -105,7 +115,7 @@ app.get("/contagem-pessoas", async (req, res) => {
 
 try {
   app.listen(8080, async () => {
-    await client.connect()
+    connect()
     console.log("server running")
   })
 } catch (error) {
