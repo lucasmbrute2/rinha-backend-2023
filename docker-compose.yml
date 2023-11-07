@@ -33,6 +33,9 @@ services:
       - POSTGRES_PASSWORD=senha
     ports:
       - 5432:5432
+    depends_on:
+      - app1
+      - app2
     deploy:
       resources:
         limits:
