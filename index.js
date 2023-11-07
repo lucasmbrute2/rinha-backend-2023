@@ -18,18 +18,26 @@ app.use(express.json())
 app.post("/pessoas", async (req, res) => {
   try {
     const b = req.body
-    if (!b.nome) {
-      return res.status(422).send("Nome is required")
+    if (!b.nome || typeof b.nome !== 'string' || b.nome.length > 100) {
+      return res.status(422).end()
     }
 
-    if (!b.apelido) return res.status(422).send("Apelido is required")
+    if (!b.apelido || typeof b.apelido !== 'string' || b.apelido.length > 32) {
+      return res.status(422).end()
+    }
+
+    if (b?.stack?.length) {
+      const hasUnvalidStack = b.stack.some(s => typeof s !== 'string' || s.length > 32)
+
+      if (hasUnvalidStack) return res.status(422).end()
+    }
 
     const { apelido, nome, nascimento, stack } = b
 
     const alreadyExistsUser = await client.query(`
       SELECT * 
       FROM person
-      WHERE apelido = '${apelido}' OR nome = '${nome}'
+      WHERE apelido = '${apelido}'
     `)
 
     if (alreadyExistsUser.rows.length) return res.status(422).end()
@@ -42,10 +50,7 @@ app.post("/pessoas", async (req, res) => {
       VALUES ('${id}','${apelido}', '${nome}', '${nascimento}', '${stackMap}')
     `)
 
-    return res.status(200).json({
-      statusCode: 200,
-      insertion: { id, ...b },
-    })
+    return res.status(201).location(`/pessoas/${id}`).end()
   } catch (error) {
     return res.status(500).json({
       res: error,
@@ -62,11 +67,11 @@ app.get('/pessoas/:id', async (req, res) => {
   `)
 
   if (!person.rows.length) return res.status(404).end()
-  return res.status(200).json(person.rows[0])
+  return res.status(200).json(person.rows[0]).end()
 })
 
 app.get('/pessoas', async (req, res) => {
-  if (!req.query?.t) return res.status(400).end()
+  if (!req.query.t) return res.status(400).end()
   const term = req.query.t
 
   const response = await client.query(`
@@ -86,12 +91,7 @@ app.get('/pessoas', async (req, res) => {
 
   // TODO index
 
-  return res.status(200).json({
-    url: 'pessoas',
-    message: 'ok',
-    query: term,
-    payload: response.rows
-  })
+  return res.status(200).json(response.rows).end()
 })
 
 app.get("/contagem-pessoas", async (req, res) => {
@@ -100,11 +100,7 @@ app.get("/contagem-pessoas", async (req, res) => {
       FROM person
   `)
 
-  return res.status(200).json({
-    url: 'contagem-pessoas',
-    message: 'Ok',
-    payload: rows[0]
-  })
+  return res.status(200).json(rows[0]).end()
 })
 
 try {
